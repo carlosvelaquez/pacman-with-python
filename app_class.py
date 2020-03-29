@@ -141,6 +141,12 @@ class App:
         pygame.display.update()
 
 ########################### PLAYING FUNCTIONS ##################################
+    def print_state(self):
+        # print(self.walls)
+        # print(self.coins)
+        for e in self.enemies:
+            print(e.grid_pos)
+        print(self.player.grid_pos)
 
     def playing_events(self):
         for event in pygame.event.get():
@@ -154,6 +160,7 @@ class App:
                 if event.key == pygame.K_UP:
                     self.player.move(vec(0, -1))
                 if event.key == pygame.K_DOWN:
+                    self.print_state()
                     self.player.move(vec(0, 1))
 
     def playing_update(self):
