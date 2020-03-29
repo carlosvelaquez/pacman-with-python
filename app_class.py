@@ -70,7 +70,7 @@ class App(gym.Env):
             elif self.state == 'playing':
                 self.action = ACT_NOTHING
                 self.playing_events()
-                self.step(self, self.action)
+                # self.step(self.action)
                 # self.playing_update()
                 self.playing_draw()
             elif self.state == 'game over':
@@ -190,32 +190,41 @@ class App(gym.Env):
 
     def step(self, action):
         # Execute one time step within the environment
-        if action == pygame.K_LEFT:
+        if action == ACT_LEFT:
             self.player.move(vec(-1, 0))
-        if action == pygame.K_RIGHT:
+        if action == ACT_RIGHT:
             self.player.move(vec(1, 0))
-        if action == pygame.K_UP:
+        if action == ACT_UP:
             self.player.move(vec(0, -1))
-        if action == pygame.K_DOWN:
+        if action == ACT_DOWN:
             self.print_state()
             self.player.move(vec(0, 1))
 
-        playing_update(self)
+        self.playing_update()
 
     def playing_events(self):
+        no_action = True
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
-                    self.action = ACT_LEFT
+                    self.step(ACT_LEFT)
+                    no_action = False
                 if event.key == pygame.K_RIGHT:
-                    self.action = ACT_RIGHT
+                    self.step(ACT_RIGHT)
+                    no_action = False
                 if event.key == pygame.K_UP:
-                    self.action = ACT_UP
+                    self.step(ACT_UP)
+                    no_action = False
                 if event.key == pygame.K_DOWN:
                     self.print_state()
-                    self.action = ACT_DOWN
+                    self.step(ACT_DOWN)
+                    no_action = False
+
+        if no_action:
+            self.step(ACT_NOTHING)
 
     def playing_update(self):
         self.player.update()
