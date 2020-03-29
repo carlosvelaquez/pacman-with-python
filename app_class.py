@@ -44,6 +44,7 @@ class App:
             else:
                 self.running = False
             self.clock.tick(FPS)
+            # pygame.time.wait(1)
         pygame.quit()
         sys.exit()
 
@@ -60,7 +61,8 @@ class App:
 
     def load(self):
         self.background = pygame.image.load('maze.png')
-        self.background = pygame.transform.scale(self.background, (MAZE_WIDTH, MAZE_HEIGHT))
+        self.background = pygame.transform.scale(
+            self.background, (MAZE_WIDTH, MAZE_HEIGHT))
 
         # Opening walls file
         # Creating walls list with co-ords of walls
@@ -117,6 +119,7 @@ class App:
 
 ########################### INTRO FUNCTIONS ####################################
 
+
     def start_events(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -164,12 +167,14 @@ class App:
 
     def playing_draw(self):
         self.screen.fill(BLACK)
-        self.screen.blit(self.background, (TOP_BOTTOM_BUFFER//2, TOP_BOTTOM_BUFFER//2))
+        self.screen.blit(
+            self.background, (TOP_BOTTOM_BUFFER//2, TOP_BOTTOM_BUFFER//2))
         self.draw_coins()
         # self.draw_grid()
         self.draw_text('CURRENT SCORE: {}'.format(self.player.current_score),
                        self.screen, [60, 0], 18, WHITE, START_FONT)
-        self.draw_text('HIGH SCORE: 0', self.screen, [WIDTH//2+60, 0], 18, WHITE, START_FONT)
+        self.draw_text('HIGH SCORE: 0', self.screen, [
+                       WIDTH//2+60, 0], 18, WHITE, START_FONT)
         self.player.draw()
         for enemy in self.enemies:
             enemy.draw()
@@ -212,7 +217,8 @@ class App:
         self.screen.fill(BLACK)
         quit_text = "Press the escape button to QUIT"
         again_text = "Press SPACE bar to PLAY AGAIN"
-        self.draw_text("GAME OVER", self.screen, [WIDTH//2, 100],  52, RED, "arial", centered=True)
+        self.draw_text("GAME OVER", self.screen, [
+                       WIDTH//2, 100],  52, RED, "arial", centered=True)
         self.draw_text(again_text, self.screen, [
                        WIDTH//2, HEIGHT//2],  36, (190, 190, 190), "arial", centered=True)
         self.draw_text(quit_text, self.screen, [
