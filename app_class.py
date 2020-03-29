@@ -43,7 +43,7 @@ class App:
                 self.game_over_draw()
             else:
                 self.running = False
-            self.clock.tick(FPS)
+            self.clock.tick(60)
             # pygame.time.wait(1)
         pygame.quit()
         sys.exit()
