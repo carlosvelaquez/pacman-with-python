@@ -2,6 +2,9 @@ import pygame
 import numpy as np
 import sys
 import copy
+import gym
+
+from gym import spaces
 from settings import *
 from player_class import *
 from enemy_class import *
@@ -11,13 +14,25 @@ pygame.init()
 vec = pygame.math.Vector2
 
 # Constants
+N_DISCRETE_ACTIONS = 5  # Nothing, up, down, left, right
 EMPTY = 0
 WALL = 1
 COIN = 2
 
+ACT_NOTHING = 0
+ACT_UP = 1
+ACT_DOWN = 2
+ACT_LEFT = 3
+ACT_RIGHT = 4
 
-class App:
+
+class App(gym.Env):
     def __init__(self):
+        super(App, self).__init__()
+        self.action_space = spaces.Discrete(N_DISCRETE_ACTIONS)
+        self.observation_space = spaces.Box(
+            low=0, high=max(COLS, ROWS), shape=(((COLS*ROWS) + (4*2) + 2), 1), dtype=np.uint8)
+
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
         self.clock = pygame.time.Clock()
         self.running = True
@@ -53,8 +68,10 @@ class App:
                 self.start_update()
                 self.start_draw()
             elif self.state == 'playing':
+                self.action = ACT_NOTHING
                 self.playing_events()
-                self.playing_update()
+                self.step(self, self.action)
+                # self.playing_update()
                 self.playing_draw()
             elif self.state == 'game over':
                 self.game_over_events()
@@ -62,7 +79,7 @@ class App:
                 self.game_over_draw()
             else:
                 self.running = False
-            self.clock.tick(60)
+            self.clock.tick(FPS)
             # pygame.time.wait(1)
         pygame.quit()
         sys.exit()
@@ -141,6 +158,7 @@ class App:
 
 ########################### INTRO FUNCTIONS ####################################
 
+
     def start_events(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -167,20 +185,34 @@ class App:
         # print(self.coins)
         print(self.grid)
 
+    def step(self, action):
+        # Execute one time step within the environment
+        if action == pygame.K_LEFT:
+            self.player.move(vec(-1, 0))
+        if action == pygame.K_RIGHT:
+            self.player.move(vec(1, 0))
+        if action == pygame.K_UP:
+            self.player.move(vec(0, -1))
+        if action == pygame.K_DOWN:
+            self.print_state()
+            self.player.move(vec(0, 1))
+
+        playing_update(self)
+
     def playing_events(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
-                    self.player.move(vec(-1, 0))
+                    self.action = ACT_LEFT
                 if event.key == pygame.K_RIGHT:
-                    self.player.move(vec(1, 0))
+                    self.action = ACT_RIGHT
                 if event.key == pygame.K_UP:
-                    self.player.move(vec(0, -1))
+                    self.action = ACT_UP
                 if event.key == pygame.K_DOWN:
                     self.print_state()
-                    self.player.move(vec(0, 1))
+                    self.action = ACT_DOWN
 
     def playing_update(self):
         self.player.update()
