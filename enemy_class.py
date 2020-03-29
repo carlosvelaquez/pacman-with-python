@@ -64,13 +64,13 @@ class Enemy:
                     vect =  vec((self.app.player.grid_pos[0] + 2) % (COLS - 2) + 1, self.app.player.grid_pos[1])
                 elif self.app.player.direction == vec(-1, 0):
                     #print("Left: " + str(vec((self.app.player.grid_pos[0] - 2) % (COLS - 2) + 1, self.app.player.grid_pos[1])))
-                    vect = vec((self.app.player.grid_pos[0] - 2) % (COLS - 2) + 1, self.app.player.grid_pos[1])
+                    vect = vec((self.app.player.grid_pos[0] - 2) % (COLS - 2) - 1, self.app.player.grid_pos[1])
                 elif self.app.player.direction == vec(0, 1):
                     #print("Down: " + str(vec(self.app.player.grid_pos[0], (self.app.player.grid_pos[1] + 2) % (ROWS - 1) + 1)))
-                    vect = vec(self.app.player.grid_pos[0], (self.app.player.grid_pos[1] + 2) % (ROWS - 1) + 1)
+                    vect = vec(self.app.player.grid_pos[0], (self.app.player.grid_pos[1] + 2) % (ROWS - 1))
                 else:
                     #print("Up: " + str(vec(self.app.player.grid_pos[0], (self.app.player.grid_pos[1] - 2) % (ROWS - 1) + 1)))
-                    vect = vec(self.app.player.grid_pos[0], (self.app.player.grid_pos[1] - 2) % (ROWS - 1) + 1)
+                    vect = vec(self.app.player.grid_pos[0], (self.app.player.grid_pos[1] - 2) % (ROWS - 1))
                 if(self.grid[int(vect[1])][int(vect[0])] == 1):
                     return self.app.player.grid_pos
                 else:
@@ -134,15 +134,17 @@ class Enemy:
         else:
             self.past_direction = self.direction
 
-        dir_flag = True
+        contdir = 0
         while (self.grid_pos[1] + self.direction[1] >= len(self.grid)) or (self.grid_pos[0] + self.direction[0] >= len(self.grid[0])) or (self.grid_pos[1] + self.direction[1] < 0) or (self.grid_pos[0] + self.direction[0] < 0) or self.grid[int(self.grid_pos[1] + self.direction[1])][int(self.grid_pos[0] + self.direction[0])] == 1:
-            if dir_flag:
-                self.direction[0] = -self.direction[0]
-                dir_flag = not dir_flag
+            if contdir == 0:
+                self.direction = vec(1,0)
+            elif contdir == 1:
+                self.direction = vec(0,1)
+            elif contdir == 2:
+                self.direction = vec(-1,0)
             else:
-                self.direction[1] = -self.direction[1]
-                dir_flag = not dir_flag
-            self.past_direction = self.direction
+                self.direction = vec(0,-1)
+            contdir += 1
 
 
     def get_path_direction(self, target):
