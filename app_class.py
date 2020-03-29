@@ -91,10 +91,10 @@ class App:
                 for xidx, char in enumerate(line):
                     if char == "1":
                         self.walls.append(vec(xidx, yidx))
-                        self.grid[xidx][yidx] = WALL
+                        self.grid[yidx][xidx] = WALL
                     elif char == "C":
                         self.coins.append(vec(xidx, yidx))
-                        self.grid[xidx][yidx] = COIN
+                        self.grid[yidx][xidx] = COIN
                     elif char == "P":
                         self.p_pos = [xidx, yidx]
                     elif char in ["2", "3", "4", "5"]:
@@ -135,7 +135,7 @@ class App:
                 for xidx, char in enumerate(line):
                     if char == 'C':
                         self.coins.append(vec(xidx, yidx))
-                        self.grid[xidx][yidx] = COIN
+                        self.grid[yidx][xidx] = COIN
         self.state = "playing"
 
 
@@ -165,7 +165,10 @@ class App:
     def print_state(self):
         # print(self.walls)
         # print(self.coins)
-        print(self.grid)
+        for x in range(0, len(self.grid)):
+            for y in range(0, len(self.grid[0])):
+                print(self.grid[x][y], end="")
+            print()
 
     def playing_events(self):
         for event in pygame.event.get():
