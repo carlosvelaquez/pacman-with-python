@@ -55,7 +55,7 @@ class Enemy:
         if self.personality == "speedy":
             return self.app.player.grid_pos
         elif self.personality == "fast":
-            if math.sqrt(math.pow((self.app.player.grid_pos[0] - self.grid_pos[0]), 2) + math.pow((self.app.player.grid_pos[1] - self.grid_pos[1]), 2)) < 3:
+            if math.sqrt(math.pow((self.app.player.grid_pos[0] - self.grid_pos[0]), 2) + math.pow((self.app.player.grid_pos[1] - self.grid_pos[1]), 2)) < 5:
                 return self.app.player.grid_pos
             else:
                 vect = None
@@ -160,6 +160,7 @@ class Enemy:
         queue = [start]
         path = []
         visited = []
+        visited.append(vec(self.grid_pos[0] - self.direction[0], self.grid_pos[1] - self.direction[1]))
         while queue:
             current = queue[0]
             queue.remove(queue[0])
