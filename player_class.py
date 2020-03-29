@@ -60,7 +60,7 @@ class Player:
         #print("Ate", x, y)
 
         self.app.coins.remove(self.grid_pos)
-        self.app.grid[int(x)][int(y)] = 0
+        self.app.grid[int(y)][int(x)] = 0
         self.current_score += 1
 
     def move(self, direction):
