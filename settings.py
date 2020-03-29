@@ -3,7 +3,7 @@ from pygame.math import Vector2 as vec
 # screen settings
 WIDTH, HEIGHT = 610, 670
 #WIDTH, HEIGHT = 305, 335
-FPS = 120
+FPS = 60
 TOP_BOTTOM_BUFFER = 50
 MAZE_WIDTH, MAZE_HEIGHT = WIDTH-TOP_BOTTOM_BUFFER, HEIGHT-TOP_BOTTOM_BUFFER
 
@@ -20,6 +20,8 @@ PLAYER_COLOUR = (190, 194, 15)
 # font settings
 START_TEXT_SIZE = 16
 START_FONT = 'arial black'
+
+TIMESTEPS = 1000
 
 # player settings
 # PLAYER_START_POS = vec(2, 2)

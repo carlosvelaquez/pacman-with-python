@@ -14,29 +14,33 @@ pygame.init()
 vec = pygame.math.Vector2
 
 # Constants
-N_DISCRETE_ACTIONS = 5  # Nothing, up, down, left, right
+N_DISCRETE_ACTIONS = 4  # Nothing, up, down, left, right
 EMPTY = 0
 WALL = 1
 COIN = 2
+PLAYER = 3
+ENEMY = 4
 
-ACT_NOTHING = 0
-ACT_UP = 1
-ACT_DOWN = 2
-ACT_LEFT = 3
-ACT_RIGHT = 4
+# ACT_NOTHING = 0
+ACT_UP = 0
+ACT_DOWN = 1
+ACT_LEFT = 2
+ACT_RIGHT = 3
 
 
 class App(gym.Env):
     def __init__(self):
         super(App, self).__init__()
+        self.screen = None
+        self.clock = pygame.time.Clock()
+
         self.action_space = spaces.Discrete(N_DISCRETE_ACTIONS)
         self.observation_space = spaces.Box(
-            low=0, high=max(COLS, ROWS), shape=(((COLS*ROWS) + (4*2) + 2),), dtype=np.uint8)
+            # low=0, high=4, shape=(4,), dtype=np.uint8)
+            low=0, high=4, shape=(COLS*ROWS + 2,), dtype=np.uint8)
+        # low=0, high=max(COLS, ROWS), shape=(10,), dtype=np.uint8)
 
         self.done = False
-
-        self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
-        self.clock = pygame.time.Clock()
         self.running = True
         self.state = 'playing'
         self.cell_width = MAZE_WIDTH//COLS
@@ -47,7 +51,7 @@ class App(gym.Env):
         self.e_pos = []
         self.p_pos = None
 
-        self.grid = np.zeros((ROWS, COLS), dtype=int)
+        self.grid = np.zeros((COLS, ROWS), dtype=int)
         # print(self.grid)
 
         self.load()
@@ -55,6 +59,7 @@ class App(gym.Env):
         self.make_enemies()
 
         self.time_elapsed = 0
+        self.old_score = 0
         # self.run()
 
     def run(self):
@@ -65,24 +70,24 @@ class App(gym.Env):
                 self.start_draw()
             elif self.state == 'playing':
                 self.action = ACT_NOTHING
-                self.playing_events()
+                # self.playing_events()
                 # self.step(self.action)
                 # self.playing_update()
-                self.playing_draw()
+                # self.playing_draw()
             elif self.state == 'game over':
                 self.game_over_events()
                 self.game_over_update()
                 self.game_over_draw()
             else:
                 self.running = False
-            self.clock.tick(FPS)
+            # self.clock.tick(FPS)
 
             # pygame.time.wait(1)
         pygame.quit()
         sys.exit()
 
     def gen_obs(self):
-        obs = []
+        """obs = []
 
         obs.append(self.player.grid_pos[0])
         obs.append(self.player.grid_pos[1])
@@ -92,16 +97,35 @@ class App(gym.Env):
             obs.append(e.grid_pos[1])
 
         obs = np.array(obs, dtype=int)
-        #print("Shape:", obs.shape)
+        # print("Shape:", obs.shape)#
 
-        #np.concatenate(obs, )
-        #print("Shape:", self.grid.shape)
+        # np.concatenate(obs, )
+        print("Shape:", self.grid.shape)
+
         n_grid = self.grid.flatten()
-        #print("Shape:", n_grid.shape)
+        # print("Shape:", n_grid.shape)
         obs = np.append(obs, n_grid)
-        #print("Shape:", obs.shape)
+        # print("Shape:", obs.shape)"""
 
-        return obs
+        # n_grid = n_grid.reshape((ROWS, COLS, 1))
+        # print("Shape:", n_grid.shape)
+        # print("Grid Shape:", n_grid.shape)
+        # print("Obs Space Shape:", self.observation_space.shape)
+
+        px = int(self.player.grid_pos[0])
+        py = int(self.player.grid_pos[1])
+
+        n_grid = np.copy(self.grid).flatten()
+        n_grid = np.append([px, py], n_grid)
+        #print("Shape:", n_grid.shape)
+
+        # return n_grid
+        # up = self.grid[px][py + 1]
+        # down = self.grid[px][py - 1]
+        # left = self.grid[px + 1][py]
+        # right = self.grid[px - 1][py]
+
+        return n_grid
 
 ############################ HELPER FUNCTIONS ##################################
 
@@ -127,10 +151,10 @@ class App(gym.Env):
                 for xidx, char in enumerate(line):
                     if char == "1":
                         self.walls.append(vec(xidx, yidx))
-                        self.grid[yidx, xidx] = WALL
+                        self.grid[xidx, yidx] = WALL
                     elif char == "C":
                         self.coins.append(vec(xidx, yidx))
-                        self.grid[yidx, xidx] = COIN
+                        self.grid[xidx, yidx] = COIN
                     elif char == "P":
                         self.p_pos = [xidx, yidx]
                     elif char in ["2", "3", "4", "5"]:
@@ -155,6 +179,10 @@ class App(gym.Env):
         #                                                        coin.y*self.cell_height, self.cell_width, self.cell_height))
 
     def reset(self):
+        # print("Score:", self.player.current_score)
+        self.done = False
+        self.time_elapsed = 0
+
         self.player.lives = 3
         self.player.current_score = 0
         self.player.grid_pos = vec(self.player.starting_pos)
@@ -171,14 +199,12 @@ class App(gym.Env):
                 for xidx, char in enumerate(line):
                     if char == 'C':
                         self.coins.append(vec(xidx, yidx))
-                        self.grid[yidx, xidx] = COIN
+                        self.grid[xidx, yidx] = COIN
+
         self.state = "playing"
-        self.done = False
-
-        if self.done == True:
-            print("Score: ", self.player.current_score)
-
-        return self.gen_obs()
+        obs = self.gen_obs()
+        # print("OBS SHAPE:", obs.shape)
+        return obs
 
 
 ########################### INTRO FUNCTIONS ####################################
@@ -207,18 +233,32 @@ class App(gym.Env):
     def print_state(self):
         # print(self.walls)
         # print(self.coins)
-        for x in range(0, len(self.grid)):
-            for y in range(0, len(self.grid[0])):
+        for x in range(0, COLS):
+            for y in range(0, ROWS):
                 print(int(self.grid[x, y]), end="")
             print()
 
+    def print_obs(self):
+        obs = self.gen_obs()
+
+        for x in range(0, COLS):
+            for y in range(0, ROWS):
+                print(int(obs[y + (COLS*x)]), end="")
+            print()
+
     def step(self, action):
-        self.clock.tick(FPS)
-        #self.action = ACT_NOTHING
+        # self.clock.tick(FPS)
+        # self.action = ACT_NOTHING
         # self.playing_events()
         # self.step(self.action)
         # self.playing_update()
-        self.playing_draw()
+
+        # self.playing_draw()
+        self.playing_events()
+        self.time_elapsed += 1
+
+        if self.time_elapsed >= TIMESTEPS:
+            self.done = True
 
         # Execute one time step within the environment
         if action == ACT_LEFT:
@@ -236,7 +276,10 @@ class App(gym.Env):
         if self.done == True:
             print("Score: ", self.player.current_score)
 
-        return self.gen_obs(), self.player.current_score, self.done, {}
+        reward = self.player.current_score - self.old_score
+        self.old_score = self.player.current_score
+
+        return self.gen_obs(), reward, self.done, {}
 
     def playing_events(self):
         no_action = True
@@ -244,7 +287,14 @@ class App(gym.Env):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False
+                pygame.quit()
             if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_DOWN:
+                    # self.print_state()
+                    self.print_obs()
+
+                # exit()
+            """if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
                     self.step(ACT_LEFT)
                     no_action = False
@@ -261,6 +311,7 @@ class App(gym.Env):
 
         if no_action:
             self.step(ACT_NOTHING)
+        """
 
     def playing_update(self):
         self.player.update()
@@ -299,7 +350,6 @@ class App(gym.Env):
                 enemy.pix_pos = enemy.get_pix_pos()
                 enemy.direction *= 0"""
         self.done = True
-        self.reset()
 
     def draw_coins(self):
         for coin in self.coins:
@@ -332,3 +382,15 @@ class App(gym.Env):
         self.draw_text(quit_text, self.screen, [
                        WIDTH//2, HEIGHT//1.5],  36, (190, 190, 190), "arial", centered=True)
         pygame.display.update()
+
+    def render(self, mode='human', close=False):
+        if self.screen == None:
+            self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
+
+        if self.clock == None:
+            self.clock = pygame.time.Clock()
+
+        self.playing_draw()
+
+    def close(self):
+        pygame.quit()

@@ -2,11 +2,18 @@ import pygame
 from settings import *
 vec = pygame.math.Vector2
 
+EMPTY = 0
+WALL = 1
+COIN = 2
+PLAYER = 3
+ENEMY = 4
+
 
 class Player:
     def __init__(self, app, pos):
         self.app = app
         self.starting_pos = [pos.x, pos.y]
+        self.old_pos = self.starting_pos
         self.grid_pos = pos
         self.pix_pos = self.get_pix_pos()
         self.direction = vec(1, 0)
@@ -30,6 +37,13 @@ class Player:
                             self.app.cell_height//2)//self.app.cell_height+1
         if self.on_coin():
             self.eat_coin()
+
+        """if (self.old_pos != self.grid_pos):
+            self.app.grid[int(self.old_pos[0]), int(self.old_pos[1])] = EMPTY
+            self.app.grid[int(self.grid_pos[0]), int(
+                self.grid_pos[1])] = PLAYER
+            self.old_pos = self.grid_pos
+            print(self.old_pos, "->", self.grid_pos)"""
 
     def draw(self):
         pygame.draw.circle(self.app.screen, PLAYER_COLOUR, (int(self.pix_pos.x),
@@ -60,7 +74,7 @@ class Player:
         #print("Ate", x, y)
 
         self.app.coins.remove(self.grid_pos)
-        self.app.grid[int(y)][int(x)] = 0
+        self.app.grid[int(x)][int(y)] = 0
         self.current_score += 1
 
     def move(self, direction):

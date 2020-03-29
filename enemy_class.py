@@ -10,6 +10,8 @@ class Enemy:
     def __init__(self, app, pos, number):
         self.app = app
         self.grid_pos = pos
+        self.old_pos = pos
+        self.old_pos_content = 0
         self.starting_pos = [pos.x, pos.y]
         self.pix_pos = self.get_pix_pos()
         self.radius = int(self.app.cell_width//2.3)
@@ -24,7 +26,7 @@ class Enemy:
         for cell in self.app.walls:
             if cell.x < 28 and cell.y < 30:
                 self.grid[int(cell.y)][int(cell.x)] = 1
-        self.past_direction = vec(0,0)
+        self.past_direction = vec(0, 0)
 
     def update(self):
         self.target = self.set_target()
@@ -38,6 +40,14 @@ class Enemy:
                             self.app.cell_width//2)//self.app.cell_width+1
         self.grid_pos[1] = (self.pix_pos[1]-TOP_BOTTOM_BUFFER +
                             self.app.cell_height//2)//self.app.cell_height+1
+
+        """self.old_pos_content = self.app.grid[int(
+            self.grid_pos[0]), int(self.grid_pos[1])]
+        self.app.grid[int(self.old_pos[0]), int(
+            self.old_pos[1])] = self.old_pos_content
+        self.app.grid[int(self.grid_pos[0]), int(self.grid_pos[1])] = 3
+
+        self.old_pos = self.grid_pos"""
 
     def draw(self):
         pygame.draw.circle(self.app.screen, self.colour,
@@ -61,16 +71,20 @@ class Enemy:
                 vect = None
                 if self.app.player.direction == vec(1, 0):
                     #print("Right: " + str(vec((self.app.player.grid_pos[0] + 2) % (COLS - 2) + 1, self.app.player.grid_pos[1])))
-                    vect =  vec((self.app.player.grid_pos[0] + 2) % (COLS - 2) + 1, self.app.player.grid_pos[1])
+                    vect = vec(
+                        (self.app.player.grid_pos[0] + 2) % (COLS - 2) + 1, self.app.player.grid_pos[1])
                 elif self.app.player.direction == vec(-1, 0):
                     #print("Left: " + str(vec((self.app.player.grid_pos[0] - 2) % (COLS - 2) + 1, self.app.player.grid_pos[1])))
-                    vect = vec((self.app.player.grid_pos[0] - 2) % (COLS - 2) - 1, self.app.player.grid_pos[1])
+                    vect = vec(
+                        (self.app.player.grid_pos[0] - 2) % (COLS - 2) - 1, self.app.player.grid_pos[1])
                 elif self.app.player.direction == vec(0, 1):
                     #print("Down: " + str(vec(self.app.player.grid_pos[0], (self.app.player.grid_pos[1] + 2) % (ROWS - 1) + 1)))
-                    vect = vec(self.app.player.grid_pos[0], (self.app.player.grid_pos[1] + 2) % (ROWS - 1))
+                    vect = vec(
+                        self.app.player.grid_pos[0], (self.app.player.grid_pos[1] + 2) % (ROWS - 1))
                 else:
                     #print("Up: " + str(vec(self.app.player.grid_pos[0], (self.app.player.grid_pos[1] - 2) % (ROWS - 1) + 1)))
-                    vect = vec(self.app.player.grid_pos[0], (self.app.player.grid_pos[1] - 2) % (ROWS - 1))
+                    vect = vec(
+                        self.app.player.grid_pos[0], (self.app.player.grid_pos[1] - 2) % (ROWS - 1))
                 if(self.grid[int(vect[1])][int(vect[0])] == 1):
                     return self.app.player.grid_pos
                 else:
@@ -100,7 +114,6 @@ class Enemy:
                         return vec(COLS-2, ROWS-1)
                 else:
                     return self.target
-            
 
     def time_to_move(self):
         if int(self.pix_pos.x+TOP_BOTTOM_BUFFER//2) % self.app.cell_width == 0:
@@ -113,7 +126,7 @@ class Enemy:
 
     def move(self):
         if self.direction == vec(1, 0) or self.direction == vec(-1, 0):
-            if (self.grid_pos[1] + 1 >= len(self.grid) or  self.grid[int(self.grid_pos[1] + 1)][int(self.grid_pos[0])]) == 1 and (self.grid_pos[1] - 1 < 0 or self.grid[int(self.grid_pos[1] - 1)][int(self.grid_pos[0])] == 1):
+            if (self.grid_pos[1] + 1 >= len(self.grid) or self.grid[int(self.grid_pos[1] + 1)][int(self.grid_pos[0])]) == 1 and (self.grid_pos[1] - 1 < 0 or self.grid[int(self.grid_pos[1] - 1)][int(self.grid_pos[0])] == 1):
                 return
         else:
             if (self.grid_pos[0] + 1 >= len(self.grid[0]) or self.grid[int(self.grid_pos[1])][int(self.grid_pos[0] + 1)] == 1) and (self.grid_pos[0] - 1 < 0 or self.grid[int(self.grid_pos[1])][int(self.grid_pos[0] - 1)] == 1):
@@ -128,7 +141,7 @@ class Enemy:
             self.direction = self.get_path_direction(self.target)
         if self.personality == "not_scared":
             self.direction = self.get_path_direction(self.target)
-        
+
         if (-self.direction[0]) == self.past_direction[0] and (-self.direction[1]) == self.past_direction[1]:
             self.direction = self.past_direction
         else:
@@ -137,15 +150,14 @@ class Enemy:
         contdir = 0
         while (self.grid_pos[1] + self.direction[1] >= len(self.grid)) or (self.grid_pos[0] + self.direction[0] >= len(self.grid[0])) or (self.grid_pos[1] + self.direction[1] < 0) or (self.grid_pos[0] + self.direction[0] < 0) or self.grid[int(self.grid_pos[1] + self.direction[1])][int(self.grid_pos[0] + self.direction[0])] == 1:
             if contdir == 0:
-                self.direction = vec(1,0)
+                self.direction = vec(1, 0)
             elif contdir == 1:
-                self.direction = vec(0,1)
+                self.direction = vec(0, 1)
             elif contdir == 2:
-                self.direction = vec(-1,0)
+                self.direction = vec(-1, 0)
             else:
-                self.direction = vec(0,-1)
+                self.direction = vec(0, -1)
             contdir += 1
-
 
     def get_path_direction(self, target):
         next_cell = self.find_next_cell_in_path(target)
@@ -162,7 +174,8 @@ class Enemy:
         queue = [start]
         path = []
         visited = []
-        visited.append(vec(self.grid_pos[0] - self.direction[0], self.grid_pos[1] - self.direction[1]))
+        visited.append(
+            vec(self.grid_pos[0] - self.direction[0], self.grid_pos[1] - self.direction[1]))
         while queue:
             current = queue[0]
             queue.remove(queue[0])
@@ -174,11 +187,13 @@ class Enemy:
                 for neighbour in neighbours:
                     if neighbour[0]+current[0] >= 0 and neighbour[0] + current[0] < len(self.grid[0]):
                         if neighbour[1]+current[1] >= 0 and neighbour[1] + current[1] < len(self.grid):
-                            next_cell = [neighbour[0] + current[0], neighbour[1] + current[1]]
+                            next_cell = [neighbour[0] + current[0],
+                                         neighbour[1] + current[1]]
                             if next_cell not in visited:
                                 if self.grid[next_cell[1]][next_cell[0]] != 1:
                                     queue.append(next_cell)
-                                    path.append({"Current": current, "Next": next_cell})
+                                    path.append(
+                                        {"Current": current, "Next": next_cell})
         shortest = [target]
         while target != start:
             for step in path:
