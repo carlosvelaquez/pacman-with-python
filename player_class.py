@@ -37,7 +37,8 @@ class Player:
 
         # Drawing player lives
         for x in range(self.lives):
-            pygame.draw.circle(self.app.screen, PLAYER_COLOUR, (30 + 20*x, HEIGHT - 15), 7)
+            pygame.draw.circle(self.app.screen, PLAYER_COLOUR,
+                               (30 + 20*x, HEIGHT - 15), 7)
 
         # Drawing the grid pos rect
         # pygame.draw.rect(self.app.screen, RED, (self.grid_pos[0]*self.app.cell_width+TOP_BOTTOM_BUFFER//2,
@@ -54,7 +55,12 @@ class Player:
         return False
 
     def eat_coin(self):
+        x = self.grid_pos[0]
+        y = self.grid_pos[1]
+        #print("Ate", x, y)
+
         self.app.coins.remove(self.grid_pos)
+        self.app.grid[int(x)][int(y)] = 0
         self.current_score += 1
 
     def move(self, direction):

@@ -1,4 +1,5 @@
 import pygame
+import numpy as np
 import sys
 import copy
 from settings import *
@@ -8,6 +9,11 @@ from enemy_class import *
 
 pygame.init()
 vec = pygame.math.Vector2
+
+# Constants
+EMPTY = 0
+WALL = 1
+COIN = 2
 
 
 class App:
@@ -23,9 +29,22 @@ class App:
         self.enemies = []
         self.e_pos = []
         self.p_pos = None
+
+        self.grid = []
+        for x in range(0, ROWS):
+            g = []
+            for y in range(0, COLS):
+                g.append(0)
+
+            self.grid.append(g)
+
+        # print(self.grid)
+
         self.load()
         self.player = Player(self, vec(self.p_pos))
         self.make_enemies()
+
+        self.time_elapsed = 0
 
     def run(self):
         while self.running:
@@ -72,8 +91,10 @@ class App:
                 for xidx, char in enumerate(line):
                     if char == "1":
                         self.walls.append(vec(xidx, yidx))
+                        self.grid[xidx][yidx] = WALL
                     elif char == "C":
                         self.coins.append(vec(xidx, yidx))
+                        self.grid[xidx][yidx] = COIN
                     elif char == "P":
                         self.p_pos = [xidx, yidx]
                     elif char in ["2", "3", "4", "5"]:
@@ -114,11 +135,11 @@ class App:
                 for xidx, char in enumerate(line):
                     if char == 'C':
                         self.coins.append(vec(xidx, yidx))
+                        self.grid[xidx][yidx] = COIN
         self.state = "playing"
 
 
 ########################### INTRO FUNCTIONS ####################################
-
 
     def start_events(self):
         for event in pygame.event.get():
@@ -144,9 +165,7 @@ class App:
     def print_state(self):
         # print(self.walls)
         # print(self.coins)
-        for e in self.enemies:
-            print(e.grid_pos)
-        print(self.player.grid_pos)
+        print(self.grid)
 
     def playing_events(self):
         for event in pygame.event.get():
