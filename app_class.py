@@ -31,7 +31,7 @@ class App(gym.Env):
         super(App, self).__init__()
         self.action_space = spaces.Discrete(N_DISCRETE_ACTIONS)
         self.observation_space = spaces.Box(
-            low=0, high=max(COLS, ROWS), shape=(((COLS*ROWS) + (4*2) + 2), 1), dtype=np.uint8)
+            low=0, high=max(COLS, ROWS), shape=(((COLS*ROWS) + (4*2) + 2),), dtype=np.uint8)
 
         self.done = False
 
@@ -47,7 +47,7 @@ class App(gym.Env):
         self.e_pos = []
         self.p_pos = None
 
-        self.grid = np.zeros((ROWS, COLS))
+        self.grid = np.zeros((ROWS, COLS), dtype=int)
         # print(self.grid)
 
         self.load()
@@ -80,6 +80,28 @@ class App(gym.Env):
             # pygame.time.wait(1)
         pygame.quit()
         sys.exit()
+
+    def gen_obs(self):
+        obs = []
+
+        obs.append(self.player.grid_pos[0])
+        obs.append(self.player.grid_pos[1])
+
+        for e in self.enemies:
+            obs.append(e.grid_pos[0])
+            obs.append(e.grid_pos[1])
+
+        obs = np.array(obs, dtype=int)
+        #print("Shape:", obs.shape)
+
+        #np.concatenate(obs, )
+        #print("Shape:", self.grid.shape)
+        n_grid = self.grid.flatten()
+        #print("Shape:", n_grid.shape)
+        obs = np.append(obs, n_grid)
+        #print("Shape:", obs.shape)
+
+        return obs
 
 ############################ HELPER FUNCTIONS ##################################
 
@@ -153,6 +175,11 @@ class App(gym.Env):
         self.state = "playing"
         self.done = False
 
+        if self.done == True:
+            print("Score: ", self.player.current_score)
+
+        return self.gen_obs()
+
 
 ########################### INTRO FUNCTIONS ####################################
 
@@ -206,18 +233,10 @@ class App(gym.Env):
 
         self.playing_update()
 
-        obs = np.array([self.player.grid_pos[0], self.player.grid_pos[1]])
-
-        for e in self.enemies:
-            np.append(obs, e.grid_pos[0])
-            np.append(obs, e.grid_pos[1])
-
-        np.append(obs, self.grid.reshape(ROWS*COLS))
-
         if self.done == True:
             print("Score: ", self.player.current_score)
 
-        return obs, self.player.current_score, self.done
+        return self.gen_obs(), self.player.current_score, self.done, {}
 
     def playing_events(self):
         no_action = True
