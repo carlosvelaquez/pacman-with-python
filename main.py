@@ -21,7 +21,6 @@ if __name__ == '__main__':
     # Next, we build a very simple model.
     model = Sequential()
     model.add(Flatten(input_shape=(1,) + env.observation_space.shape))
-    model.add(BatchNormalization())
     model.add(Dense(64))
     model.add(Activation('relu'))
     model.add(Dense(64))
