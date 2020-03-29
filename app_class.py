@@ -33,10 +33,12 @@ class App(gym.Env):
         self.observation_space = spaces.Box(
             low=0, high=max(COLS, ROWS), shape=(((COLS*ROWS) + (4*2) + 2), 1), dtype=np.uint8)
 
+        self.done = False
+
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
         self.clock = pygame.time.Clock()
         self.running = True
-        self.state = 'start'
+        self.state = 'playing'
         self.cell_width = MAZE_WIDTH//COLS
         self.cell_height = MAZE_HEIGHT//ROWS
         self.walls = []
@@ -45,14 +47,7 @@ class App(gym.Env):
         self.e_pos = []
         self.p_pos = None
 
-        self.grid = []
-        for x in range(0, ROWS):
-            g = []
-            for y in range(0, COLS):
-                g.append(0)
-
-            self.grid.append(g)
-
+        self.grid = np.zeros((ROWS, COLS))
         # print(self.grid)
 
         self.load()
@@ -60,6 +55,7 @@ class App(gym.Env):
         self.make_enemies()
 
         self.time_elapsed = 0
+        # self.run()
 
     def run(self):
         while self.running:
@@ -80,6 +76,7 @@ class App(gym.Env):
             else:
                 self.running = False
             self.clock.tick(FPS)
+
             # pygame.time.wait(1)
         pygame.quit()
         sys.exit()
@@ -108,10 +105,10 @@ class App(gym.Env):
                 for xidx, char in enumerate(line):
                     if char == "1":
                         self.walls.append(vec(xidx, yidx))
-                        self.grid[yidx][xidx] = WALL
+                        self.grid[yidx, xidx] = WALL
                     elif char == "C":
                         self.coins.append(vec(xidx, yidx))
-                        self.grid[yidx][xidx] = COIN
+                        self.grid[yidx, xidx] = COIN
                     elif char == "P":
                         self.p_pos = [xidx, yidx]
                     elif char in ["2", "3", "4", "5"]:
@@ -152,12 +149,12 @@ class App(gym.Env):
                 for xidx, char in enumerate(line):
                     if char == 'C':
                         self.coins.append(vec(xidx, yidx))
-                        self.grid[yidx][xidx] = COIN
+                        self.grid[yidx, xidx] = COIN
         self.state = "playing"
+        self.done = False
 
 
 ########################### INTRO FUNCTIONS ####################################
-
 
     def start_events(self):
         for event in pygame.event.get():
@@ -185,10 +182,17 @@ class App(gym.Env):
         # print(self.coins)
         for x in range(0, len(self.grid)):
             for y in range(0, len(self.grid[0])):
-                print(self.grid[x][y], end="")
+                print(int(self.grid[x, y]), end="")
             print()
 
     def step(self, action):
+        self.clock.tick(FPS)
+        #self.action = ACT_NOTHING
+        # self.playing_events()
+        # self.step(self.action)
+        # self.playing_update()
+        self.playing_draw()
+
         # Execute one time step within the environment
         if action == ACT_LEFT:
             self.player.move(vec(-1, 0))
@@ -197,10 +201,23 @@ class App(gym.Env):
         if action == ACT_UP:
             self.player.move(vec(0, -1))
         if action == ACT_DOWN:
-            self.print_state()
+            # self.print_state()
             self.player.move(vec(0, 1))
 
         self.playing_update()
+
+        obs = np.array([self.player.grid_pos[0], self.player.grid_pos[1]])
+
+        for e in self.enemies:
+            np.append(obs, e.grid_pos[0])
+            np.append(obs, e.grid_pos[1])
+
+        np.append(obs, self.grid.reshape(ROWS*COLS))
+
+        if self.done == True:
+            print("Score: ", self.player.current_score)
+
+        return obs, self.player.current_score, self.done
 
     def playing_events(self):
         no_action = True
@@ -251,7 +268,7 @@ class App(gym.Env):
         pygame.display.update()
 
     def remove_life(self):
-        self.player.lives -= 1
+        """self.player.lives -= 1
         if self.player.lives == 0:
             self.state = "game over"
         else:
@@ -261,7 +278,9 @@ class App(gym.Env):
             for enemy in self.enemies:
                 enemy.grid_pos = vec(enemy.starting_pos)
                 enemy.pix_pos = enemy.get_pix_pos()
-                enemy.direction *= 0
+                enemy.direction *= 0"""
+        self.done = True
+        self.reset()
 
     def draw_coins(self):
         for coin in self.coins:
